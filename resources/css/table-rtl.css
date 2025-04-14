@@ -1,0 +1,75 @@
+/* تخصيصات الجداول في وضع RTL */
+
+/* تحديد اتجاه الجدول */
+html[dir="rtl"] .v-data-table,
+html[dir="rtl"] .v-data-table__wrapper,
+html[dir="rtl"] .v-data-table > .v-data-table__wrapper > table {
+  direction: rtl !important;
+}
+
+/* محاذاة عناوين الأعمدة */
+html[dir="rtl"] .v-data-table .v-data-table-header th {
+  text-align: right !important;
+}
+
+/* محاذاة محتوى الخلايا */
+html[dir="rtl"] .v-data-table tbody td {
+  text-align: right !important;
+}
+
+/* تخصيص أيقونات الترتيب */
+html[dir="rtl"] .v-data-table-header th.sortable {
+  padding-left: 0 !important;
+  padding-right: 8px !important;
+}
+
+/* محاذاة تذييل الجدول */
+html[dir="rtl"] .v-data-table__footer {
+  text-align: right !important;
+}
+
+/* تخصيص الهوامش في تذييل الجدول */
+html[dir="rtl"] .v-data-footer__select {
+  margin-left: 16px !important;
+  margin-right: 0 !important;
+}
+
+/* تخصيص أزرار التنقل بين الصفحات */
+html[dir="rtl"] .v-data-footer__pagination {
+  margin-right: auto !important;
+  margin-left: 0 !important;
+}
+
+/* تخصيص الأيقونات في أزرار التنقل */
+html[dir="rtl"] .v-data-footer__icons-before {
+  transform: rotate(180deg);
+}
+
+html[dir="rtl"] .v-data-footer__icons-after {
+  transform: rotate(180deg);
+}
+
+/* تعديل ترتيب الأعمدة */
+html[dir="rtl"] .v-data-table > .v-data-table__wrapper > table > thead > tr,
+html[dir="rtl"] .v-data-table > .v-data-table__wrapper > table > tbody > tr {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+/* تعديل عرض الخلايا */
+html[dir="rtl"] .v-data-table > .v-data-table__wrapper > table > thead > tr > th,
+html[dir="rtl"] .v-data-table > .v-data-table__wrapper > table > tbody > tr > td {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* تخصيص عمود الإجراءات */
+html[dir="rtl"] .v-data-table > .v-data-table__wrapper > table > thead > tr > th:last-child,
+html[dir="rtl"] .v-data-table > .v-data-table__wrapper > table > tbody > tr > td:last-child {
+  flex: 0 0 auto;
+  width: 120px;
+  text-align: center !important;
+} 

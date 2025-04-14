@@ -1,0 +1,111 @@
+/* 
+ * RTL (Right-to-Left) Specific Styles
+ * This file contains overrides and fixes for RTL layout
+ */
+
+/* تعديلات عامة للـ RTL */
+html.rtl-active,
+body.rtl-active {
+  direction: rtl !important;
+}
+
+/* تعديلات للحقول */
+html.rtl-active .v-field__prepend-inner {
+  padding-right: 0 !important;
+  padding-left: 12px !important;
+}
+
+html.rtl-active .v-field__append-inner {
+  padding-left: 0 !important;
+  padding-right: 12px !important;
+}
+
+/* تعديلات للجداول */
+html.rtl-active .v-data-table th,
+html.rtl-active .v-data-table td {
+  text-align: right !important;
+}
+
+/* تعديلات للقوائم */
+html.rtl-active .v-list-item__prepend {
+  margin-right: 0 !important;
+  margin-left: 16px !important;
+}
+
+html.rtl-active .v-list-item__append {
+  margin-left: 0 !important;
+  margin-right: 16px !important;
+}
+
+/* تعديلات للأزرار */
+html.rtl-active .v-btn__prepend {
+  margin-right: 0 !important;
+  margin-left: 8px !important;
+}
+
+html.rtl-active .v-btn__append {
+  margin-left: 0 !important;
+  margin-right: 8px !important;
+}
+
+/* تعديلات للشريط الجانبي */
+html.rtl-active .v-navigation-drawer {
+  right: 0 !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+html.rtl-active .v-navigation-drawer--rail {
+  transform: none !important;
+}
+
+html.rtl-active .v-navigation-drawer.sidebar {
+  border-left: 1px solid rgba(0, 0, 0, 0.12) !important;
+  border-right: none !important;
+}
+
+/* تعديلات للشريط العلوي */
+html.rtl-active .v-app-bar {
+  direction: rtl !important;
+}
+
+html.rtl-active .v-app-bar__content {
+  flex-direction: row-reverse !important;
+}
+
+html.rtl-active .v-toolbar-title {
+  margin-right: 16px !important;
+  margin-left: 0 !important;
+}
+
+/* تعديلات إضافية للشريط الجانبي */
+html.rtl-active .v-navigation-drawer .v-list-item__prepend {
+  margin-right: 0 !important;
+  margin-left: 16px !important;
+}
+
+html.rtl-active .v-navigation-drawer .v-list-item__append {
+  margin-left: 0 !important;
+  margin-right: 16px !important;
+}
+
+html.rtl-active .v-navigation-drawer .v-list-item__content {
+  text-align: right !important;
+}
+
+html.rtl-active .v-navigation-drawer__content {
+  direction: rtl !important;
+}
+
+/* تعديلات لحجم الشريط الجانبي */
+html.rtl-active .v-navigation-drawer:not(.v-navigation-drawer--rail) {
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+}
+
+html.rtl-active .v-navigation-drawer--rail {
+  width: 56px !important;
+  min-width: 56px !important;
+  max-width: 56px !important;
+}
