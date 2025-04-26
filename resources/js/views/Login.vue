@@ -4,10 +4,18 @@
       <v-col cols="12" sm="8" md="6" lg="4">
         <v-card elevation="10" class="rounded-lg">
           <v-card-title class="text-center primary white--text py-4">
+            <div class="d-flex justify-center mb-3">
+              <v-img
+                src="/images/family-tree-logo.svg"
+                alt="شعار شجرة العائلة"
+                width="64"
+                height="64"
+              ></v-img>
+            </div>
             <h2>تسجيل الدخول</h2>
-            <p class="text-subtitle-1 mb-0 mt-2">مرحبًا بك في نظام ادارة اشتراكات العاملين </p>
+            <p class="text-subtitle-1 mb-0 mt-2">مرحبًا بك في نظام إدارة شجرة العائلة</p>
           </v-card-title>
-          
+
           <v-card-text class="pa-6">
             <v-alert
               v-if="error"
@@ -18,7 +26,7 @@
             >
               {{ error }}
             </v-alert>
-            
+
             <v-form @submit.prevent="handleLogin">
               <v-text-field
                 v-model="form.email"
@@ -30,7 +38,7 @@
                 autocomplete="email"
                 class="mb-2"
               ></v-text-field>
-              
+
               <v-text-field
                 v-model="form.password"
                 label="كلمة المرور"
@@ -41,7 +49,7 @@
                 autocomplete="current-password"
                 class="mb-4"
               ></v-text-field>
-              
+
               <v-checkbox
                 v-model="form.remember"
                 label="تذكرني"
@@ -49,7 +57,7 @@
                 hide-details
                 class="mb-6"
               ></v-checkbox>
-              
+
               <v-btn
                 type="submit"
                 color="primary"
@@ -78,31 +86,31 @@ export default {
   setup() {
     const router = useRouter();
     const authStore = useAuthStore();
-    
+
     // نموذج تسجيل الدخول
     const form = ref({
       email: '',
       password: '',
       remember: false
     });
-    
+
     // حالة التحميل
     const loading = ref(false);
-    
+
     // رسالة الخطأ
     const error = ref('');
-    
+
     // معالجة تسجيل الدخول
     const handleLogin = async () => {
       loading.value = true;
       error.value = '';
-      
+
       try {
         const success = await authStore.login({
           email: form.value.email,
           password: form.value.password
         });
-        
+
         if (success) {
           router.push('/dashboard');
         } else {
@@ -115,7 +123,7 @@ export default {
         loading.value = false;
       }
     };
-    
+
     return {
       form,
       loading,

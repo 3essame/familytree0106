@@ -4,12 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
-use App\Http\Controllers\API\MemberController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RoleController;
-use App\Http\Controllers\API\SubscriptionController;
-use App\Http\Controllers\API\SubscriptionImportController;
-use App\Http\Controllers\API\ReportController;
+use App\Http\Controllers\API\FamilyTreeController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -50,15 +48,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [UserController::class, 'destroy']);
     });
 
-    // مسارات الأعضاء
-    Route::prefix('members')->group(function () {
-        Route::get('/', [MemberController::class, 'index']);
-        Route::post('/', [MemberController::class, 'store']);
-        Route::get('/{id}', [MemberController::class, 'show']);
-        Route::put('/{id}', [MemberController::class, 'update']);
-        Route::delete('/{id}', [MemberController::class, 'destroy']);
-    });
-
     // مسارات الأدوار
     Route::prefix('roles')->group(function () {
         Route::get('/', [RoleController::class, 'index']);
@@ -69,25 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/permissions', [RoleController::class, 'permissions']);
     });
 
-    // مسارات الاشتراكات
-    Route::prefix('subscriptions')->group(function () {
-        Route::get('/', [SubscriptionController::class, 'index']);
-        Route::post('/', [SubscriptionController::class, 'store']);
-        Route::get('/{id}', [SubscriptionController::class, 'show']);
-        Route::put('/{id}', [SubscriptionController::class, 'update']);
-        Route::delete('/{id}', [SubscriptionController::class, 'destroy']);
+    // مسارات شجرة العائلة
+    Route::apiResource('family-tree', FamilyTreeController::class);
 
-        // مسارات استيراد الاشتراكات
-        Route::post('/import', [SubscriptionImportController::class, 'import']);
-        Route::get('/template', [SubscriptionImportController::class, 'downloadTemplate']);
-
-        // مسار تصدير الاشتراكات
-        Route::get('/export', [SubscriptionController::class, 'export']);
-    });
-
-    // مسارات التقارير
-    // reports/subscriptions
-    Route::prefix('reports')->group(function () {
-        Route::get('/subscriptions', [ReportController::class, 'generateSubscriptionReport']);
-    });
 });

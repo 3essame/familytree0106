@@ -11,9 +11,9 @@
     class="sidebar"
   >
     <v-list-item
-      prepend-avatar="https://randomuser.me/api/portraits/men/85.jpg"
+      prepend-avatar="/images/family-tree-logo.svg"
       :title="authStore.user ? authStore.user.name : 'مستخدم'"
-      :subtitle="authStore.user ? authStore.user.email : ''"
+      :subtitle="'شجرة العائلة'"
       class="py-3"
     >
       <template v-slot:append>
@@ -36,32 +36,35 @@
         value="dashboard"
         to="/dashboard"
       ></v-list-item>
-      
+
       <!-- عناصر القائمة المرتبطة بالصلاحيات -->
-      <v-list-item
-        v-if="can('view members')"
-        prepend-icon="mdi-account-group"
-        title="الأعضاء"
-        value="members"
-        to="/members"
-      ></v-list-item>
-      
-      <v-list-item
-        v-if="can('view subscriptions')"
-        prepend-icon="mdi-credit-card"
-        title="الاشتراكات"
-        value="subscriptions"
-        to="/subscriptions"
-      ></v-list-item>
-      
-      <v-list-item
-        v-if="can('view reports')"
-        prepend-icon="mdi-chart-bar"
-        title="التقارير"
-        value="reports"
-        to="/reports"
-      ></v-list-item>
-      
+      <v-list-group
+        v-if="can('view family tree')"
+        value="family-tree-group"
+      >
+        <template v-slot:activator="{ props }">
+          <v-list-item
+            v-bind="props"
+            prepend-icon="mdi-family-tree"
+            title="شجرة العائلة"
+          ></v-list-item>
+        </template>
+
+        <v-list-item
+          prepend-icon="mdi-tree"
+          title="النسخة الحالية"
+          value="family-tree"
+          to="/family-tree"
+        ></v-list-item>
+
+        <v-list-item
+          prepend-icon="mdi-tree-outline"
+          title="النسخة الجديدة"
+          value="new-family-tree"
+          to="/new-family-tree"
+        ></v-list-item>
+      </v-list-group>
+
       <!-- عناصر القائمة المرتبطة بالأدوار -->
       <v-list-group
         v-if="hasRole('admin')"
@@ -88,7 +91,7 @@
           value="settings"
           to="/settings"
         ></v-list-item>
-        
+
         <v-list-item
           prepend-icon="mdi-shield-account"
           title="الأدوار والصلاحيات"
@@ -132,28 +135,28 @@ export default {
     const router = useRouter();
     const drawer = ref(true);
     const { isRtl } = useRtl();
-    
+
     watch(() => props.isCollapsed, (newValue) => {
       drawer.value = !newValue;
     });
-    
+
     const toggleSidebar = () => {
       emit('toggle-sidebar');
     };
-    
+
     const can = (permission) => {
       return authStore.permissions?.includes(permission) || false;
     };
-    
+
     const hasRole = (role) => {
       return authStore.roles?.includes(role) || false;
     };
-    
+
     const logout = async () => {
       await authStore.logout();
       router.push('/login');
     };
-    
+
     return {
       authStore,
       drawer,
@@ -204,7 +207,7 @@ export default {
   .v-list-item__prepend {
     margin-left: 0 !important;
   }
-  
+
   .toggle-btn {
     margin-right: -8px !important;
   }

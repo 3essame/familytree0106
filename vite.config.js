@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
@@ -10,31 +11,31 @@ export default defineConfig({
             refresh: true,
         }),
         tailwindcss(),
-        vue({
-            template: {
-                transformAssetUrls: {
-                    base: null,
-                    includeAbsolute: false,
-                },
-            },
-        }),
+        vue(),
     ],
     resolve: {
         alias: {
-            '@': '/resources/js',
-            '~': '/node_modules',
+            '@': path.resolve(__dirname, './resources/js'),
+            '~': path.resolve(__dirname, './node_modules'),
         },
     },
-    css: {
-        preprocessorOptions: {
-            scss: {
-                additionalData: `@import "@/styles/variables.scss";`,
-            },
-        },
+    optimizeDeps: {
+        include: ['vue', 'vue-router', 'pinia', 'axios', 'd3'],
+    },
+    build: {
+        sourcemap: true,
+        rollupOptions: {
+            input: {
+                app: '/resources/js/app.js'
+            }
+        }
     },
     server: {
         host: 'localhost',
         port: 5173,
+        hmr: {
+            host: 'localhost'
+        },
         proxy: {
             '/api': {
                 target: 'http://localhost:8000',
@@ -44,3 +45,4 @@ export default defineConfig({
         }
     },
 });
+

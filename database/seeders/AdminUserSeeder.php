@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
@@ -18,92 +18,74 @@ class AdminUserSeeder extends Seeder
     {
         // إنشاء الصلاحيات
         $permissions = [
-            // صلاحيات الأعضاء
-            'view members',
-            'create members',
-            'edit members',
-            'delete members',
-            
-            // صلاحيات الاشتراكات
-            'view subscriptions',
-            'create subscriptions',
-            'edit subscriptions',
-            'delete subscriptions',
-            
-            // صلاحيات التقارير
-            'view reports',
-            'create reports',
-            'export reports',
-            
+
             // صلاحيات الإعدادات
             'manage settings',
-            
+
             // صلاحيات الأدوار والصلاحيات
             'manage roles',
             'manage permissions'
         ];
-        
+
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
-        
+
         // إنشاء الأدوار
-        $adminRole = Role::create(['name' => 'admin']);
-        $managerRole = Role::create(['name' => 'manager']);
-        $memberRole = Role::create(['name' => 'member']);
-        
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $managerRole = Role::firstOrCreate(['name' => 'manager', 'guard_name' => 'web']);
+        $memberRole = Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
+
         // إعطاء جميع الصلاحيات للمسؤول
         $adminRole->givePermissionTo(Permission::all());
-        
+
         // إعطاء بعض الصلاحيات للمدير
         $managerRole->givePermissionTo([
-            'view members',
-            'create members',
-            'edit members',
-            'view subscriptions',
-            'create subscriptions',
-            'edit subscriptions',
-            'view reports',
-            'create reports',
-            'export reports'
+            'view family tree',
+            'manage family tree'
         ]);
-        
+
         // إعطاء صلاحيات محدودة للعضو
         $memberRole->givePermissionTo([
-            'view members',
-            'view subscriptions'
+            'view family tree'
         ]);
-        
+
         // إنشاء مستخدم مسؤول
-        $admin = User::create([
-            'name' => 'المسؤول',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'status' => 'active'
-        ]);
-        
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+                'status' => 'active',
+            ]
+        );
+
+        // إنشاء مستخدم مدير
+        $manager = User::firstOrCreate(
+            ['email' => 'manager@admin.com'],
+            [
+                'name' => 'Manager',
+                'password' => Hash::make('password'),
+                'status' => 'active',
+            ]
+        );
+
+        // إنشاء مستخدم عادي
+        $member = User::firstOrCreate(
+            ['email' => 'member@example.com'],
+            [
+                'name' => 'Member',
+                'password' => Hash::make('password'),
+                'status' => 'active',
+            ]
+        );
+
         // إعطاء دور المسؤول للمستخدم
         $admin->assignRole('admin');
-        
-        // إنشاء مستخدم مدير
-        $manager = User::create([
-            'name' => 'المدير',
-            'email' => 'manager@example.com',
-            'password' => Hash::make('password'),
-            'status' => 'active'
-        ]);
-        
+
         // إعطاء دور المدير للمستخدم
         $manager->assignRole('manager');
-        
-        // إنشاء مستخدم عادي
-        $member = User::create([
-            'name' => 'عضو',
-            'email' => 'member@example.com',
-            'password' => Hash::make('password'),
-            'status' => 'active'
-        ]);
-        
+
         // إعطاء دور العضو للمستخدم
         $member->assignRole('member');
     }
