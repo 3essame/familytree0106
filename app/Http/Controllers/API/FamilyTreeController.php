@@ -25,6 +25,7 @@ class FamilyTreeController extends Controller
                 'children.father',
                 'children.mother'
             ])->get();
+            Log::info('جلب قائمة الآباء/الأفراد بنجاح: ' . $nodes->count() . ' عنصر');
 
             // تسجيل عدد العقد المسترجعة
             Log::info('Retrieved ' . count($nodes) . ' family tree nodes');

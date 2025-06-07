@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
-
+import tailwindcss from 'tailwindcss';
+//dr.abdrazaq
+const host='familytree0106.test'
 export default defineConfig({
     plugins: [
         laravel({
@@ -30,19 +31,14 @@ export default defineConfig({
             }
         }
     },
+    //dr.abdrazaq
     server: {
-        host: 'localhost',
+        host: host,
         port: 5173,
         hmr: {
-            host: 'localhost'
+            host: host
         },
-        proxy: {
-            '/api': {
-                target: 'http://localhost:8000',
-                changeOrigin: true,
-                secure: false,
-            }
-        }
+       
     },
 });
 

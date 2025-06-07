@@ -1,47 +1,92 @@
 <template>
   <div class="family-tree-container">
+    <!-- Tree Controls -->
     <div class="tree-controls">
-      <button @click="zoomIn" class="btn-control">
-        <i class="fas fa-search-plus"></i>
-      </button>
-      <button @click="zoomOut" class="btn-control">
-        <i class="fas fa-search-minus"></i>
-      </button>
-      <button @click="resetView" class="btn-control">
-        <i class="fas fa-sync"></i>
-      </button>
+      <v-btn-group class="control-group">
+        <v-btn
+          icon="mdi-plus"
+          @click="zoomIn"
+          class="control-btn"
+          :size="isMobile ? 'large' : 'default'"
+        ></v-btn>
+        <v-btn
+          icon="mdi-minus"
+          @click="zoomOut"
+          class="control-btn"
+          :size="isMobile ? 'large' : 'default'"
+        ></v-btn>
+        <v-btn
+          icon="mdi-refresh"
+          @click="resetView"
+          class="control-btn"
+          :size="isMobile ? 'large' : 'default'"
+        ></v-btn>
+      </v-btn-group>
     </div>
 
-    <div class="tree-view" ref="treeView">
-      <div class="tree-level" v-for="(level, index) in treeLevels" :key="index">
-        <div class="tree-nodes">
-          <div v-for="person in level" :key="person.id" class="tree-node">
-            <PersonCard
-              :person="person"
-              :current-marriage="getCurrentMarriage(person)"
-              @edit="handleEdit"
-              @view-details="handleViewDetails"
-            />
-            
-            <div class="node-connections" v-if="index < treeLevels.length - 1">
-              <div class="connection-line" v-if="hasChildren(person)"></div>
+    <!-- Tree View with Touch Support -->
+    <div 
+      class="tree-view" 
+      ref="treeView"
+      v-touch="{
+        start: touchStart,
+        move: touchMove,
+        end: touchEnd
+      }"
+    >
+      <div 
+        class="tree-content"
+        :style="{
+          transform: `scale(${zoomLevel}) translate(${panX}px, ${panY}px)`,
+          touchAction: 'none'
+        }"
+      >
+        <div 
+          class="tree-level" 
+          v-for="(level, index) in treeLevels" 
+          :key="index"
+        >
+          <div class="tree-nodes">
+            <div v-for="person in level" :key="person.id" class="tree-node">
+              <PersonCard
+                :person="person"
+                :current-marriage="getCurrentMarriage(person)"
+                @edit="handleEdit"
+                @view-details="handleViewDetails"
+              />
+              
+              <div class="node-connections" v-if="index < treeLevels.length - 1">
+                <div class="connection-line" v-if="hasChildren(person)"></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal for person details -->
-    <div class="modal" v-if="selectedPerson" @click.self="closeModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>{{ selectedPerson.name }}</h2>
-          <button @click="closeModal" class="btn-close">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="person-details">
+    <!-- Responsive Modal -->
+    <v-dialog
+      v-model="showModal"
+      :fullscreen="isMobile"
+      :width="isMobile ? '100%' : '600'"
+      transition="dialog-bottom-transition"
+    >
+      <v-card v-if="selectedPerson">
+        <v-toolbar
+          dark
+          color="primary"
+        >
+          <v-btn
+            icon
+            @click="closeModal"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+          <v-toolbar-title>{{ selectedPerson.name }}</v-toolbar-title>
+        </v-toolbar>
+
+        <v-card-text>
+          <v-container class="person-details">
             <div class="detail-section">
               <h3>المعلومات الأساسية</h3>
               <div class="detail-item">
@@ -71,246 +116,193 @@
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          </v-container>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useDisplay } from 'vuetify';
 import PersonCard from './PersonCard.vue';
 
-export default {
-  components: {
-    PersonCard
-  },
-  props: {
-    familyData: {
-      type: Array,
-      required: true
-    }
-  },
-  data() {
-    return {
-      zoomLevel: 1,
-      selectedPerson: null,
-      treeLevels: []
-    }
-  },
-  methods: {
-    zoomIn() {
-      this.zoomLevel = Math.min(this.zoomLevel + 0.1, 2);
-      this.updateZoom();
-    },
-    zoomOut() {
-      this.zoomLevel = Math.max(this.zoomLevel - 0.1, 0.5);
-      this.updateZoom();
-    },
-    resetView() {
-      this.zoomLevel = 1;
-      this.updateZoom();
-    },
-    updateZoom() {
-      this.$refs.treeView.style.transform = `scale(${this.zoomLevel})`;
-    },
-    getCurrentMarriage(person) {
-      return person.marriages?.find(m => m.status === 'active');
-    },
-    hasChildren(person) {
-      return person.children?.length > 0;
-    },
-    handleEdit(person) {
-      this.$emit('edit', person);
-    },
-    handleViewDetails(person) {
-      this.selectedPerson = person;
-    },
-    closeModal() {
-      this.selectedPerson = null;
-    },
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('ar-SA', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    },
-    organizeTreeLevels() {
-      // Organize family members into levels based on their relationships
-      const levels = [];
-      const processed = new Set();
+// Responsive helpers
+const display = useDisplay();
+const isMobile = computed(() => display.mdAndDown.value);
 
-      // Start with the oldest generation
-      const oldestGeneration = this.familyData.filter(person => 
-        !person.father && !person.mother
+// Touch handling
+const touchStartX = ref(0);
+const touchStartY = ref(0);
+const panX = ref(0);
+const panY = ref(0);
+const zoomLevel = ref(1);
+
+const touchStart = (event) => {
+  touchStartX.value = event.touches[0].clientX - panX.value;
+  touchStartY.value = event.touches[0].clientY - panY.value;
+};
+
+const touchMove = (event) => {
+  panX.value = event.touches[0].clientX - touchStartX.value;
+  panY.value = event.touches[0].clientY - touchStartY.value;
+};
+
+const touchEnd = () => {
+  // Save final position
+};
+
+// Zoom controls
+const zoomIn = () => {
+  zoomLevel.value = Math.min(zoomLevel.value + 0.1, 2);
+};
+
+const zoomOut = () => {
+  zoomLevel.value = Math.max(zoomLevel.value - 0.1, 0.5);
+};
+
+const resetView = () => {
+  zoomLevel.value = 1;
+  panX.value = 0;
+  panY.value = 0;
+};
+
+const getCurrentMarriage = (person) => {
+  return person.marriages?.find(m => m.status === 'active');
+};
+
+const hasChildren = (person) => {
+  return person.children?.length > 0;
+};
+
+const handleEdit = (person) => {
+  emit('edit', person);
+};
+
+const handleViewDetails = (person) => {
+  selectedPerson.value = person;
+};
+
+const closeModal = () => {
+  selectedPerson.value = null;
+};
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('ar-SA', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+const organizeTreeLevels = () => {
+  // Organize family members into levels based on their relationships
+  const levels = [];
+  const processed = new Set();
+
+  // Start with the oldest generation
+  const oldestGeneration = familyData.value.filter(person => 
+    !person.father && !person.mother
+  );
+  levels.push(oldestGeneration);
+  oldestGeneration.forEach(person => processed.add(person.id));
+
+  // Process subsequent generations
+  let currentLevel = oldestGeneration;
+  while (currentLevel.length > 0) {
+    const nextLevel = [];
+    currentLevel.forEach(person => {
+      const children = familyData.value.filter(child =>
+        (child.father_id === person.id || child.mother_id === person.id) &&
+        !processed.has(child.id)
       );
-      levels.push(oldestGeneration);
-      oldestGeneration.forEach(person => processed.add(person.id));
-
-      // Process subsequent generations
-      let currentLevel = oldestGeneration;
-      while (currentLevel.length > 0) {
-        const nextLevel = [];
-        currentLevel.forEach(person => {
-          const children = this.familyData.filter(child =>
-            (child.father_id === person.id || child.mother_id === person.id) &&
-            !processed.has(child.id)
-          );
-          nextLevel.push(...children);
-          children.forEach(child => processed.add(child.id));
-        });
-        if (nextLevel.length > 0) {
-          levels.push(nextLevel);
-        }
-        currentLevel = nextLevel;
-      }
-
-      this.treeLevels = levels;
+      nextLevel.push(...children);
+      children.forEach(child => processed.add(child.id));
+    });
+    if (nextLevel.length > 0) {
+      levels.push(nextLevel);
     }
-  },
-  mounted() {
-    this.organizeTreeLevels();
-  },
-  watch: {
-    familyData: {
-      handler() {
-        this.organizeTreeLevels();
-      },
-      deep: true
-    }
+    currentLevel = nextLevel;
   }
-}
+
+  treeLevels.value = levels;
+};
+
+onMounted(() => {
+  organizeTreeLevels();
+});
+
+watch(familyData, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    organizeTreeLevels();
+  }
+}, { deep: true });
 </script>
 
-<style scoped>
+<style>
 .family-tree-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   overflow: hidden;
-  background: #f5f5f5;
-  padding: 2rem;
 }
 
 .tree-controls {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  display: flex;
-  gap: 0.5rem;
-  z-index: 10;
-}
-
-.btn-control {
-  background: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-}
-
-.btn-control:hover {
-  background: #f0f0f0;
-  transform: translateY(-1px);
-}
-
-.tree-view {
-  transform-origin: top center;
-  transition: transform 0.3s ease;
-}
-
-.tree-level {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.tree-nodes {
-  display: flex;
-  gap: 2rem;
-  position: relative;
-}
-
-.tree-node {
-  position: relative;
-}
-
-.node-connections {
-  position: absolute;
-  bottom: -2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 2rem;
-  background: #ccc;
-}
-
-.modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  bottom: 20px;
+  right: 20px;
   z-index: 1000;
 }
 
-.modal-content {
-  background: white;
+.control-group {
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.modal-header {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.control-btn {
+  margin: 4px;
 }
 
-.modal-body {
-  padding: 1rem;
+.tree-view {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
-.detail-section {
-  margin-bottom: 1.5rem;
+.tree-content {
+  transform-origin: 0 0;
+  will-change: transform;
 }
 
-.detail-section h3 {
-  margin-bottom: 1rem;
-  color: #2c3e50;
+/* Responsive styles */
+@media (max-width: 768px) {
+  .tree-controls {
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .control-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .tree-node {
+    min-width: 200px;
+    margin: 8px;
+  }
 }
 
-.detail-item, .relationship-item {
-  display: flex;
-  margin-bottom: 0.5rem;
-}
+/* Touch-friendly styles */
+@media (hover: none) {
+  .tree-node {
+    padding: 16px;
+  }
 
-.label {
-  font-weight: 600;
-  margin-left: 0.5rem;
-  color: #666;
+  .control-btn {
+    padding: 12px;
+  }
 }
-
-.btn-close {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: #666;
-}
-
-.btn-close:hover {
-  color: #333;
-}
-</style> 
+</style>

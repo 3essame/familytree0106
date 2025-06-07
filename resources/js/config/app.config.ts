@@ -9,9 +9,16 @@ interface AppConfig {
   supportedLocales: string[]
 }
 
+
+//dr.abdrazaq
 export const appConfig: AppConfig = {
   api: {
-    baseURL: 'http://localhost:8000/api',
+    baseURL:  window.location.protocol +
+    "//" +
+    window.location.hostname +
+    ":" +
+    window.location.port +
+    "/api",
     timeout: 30000,
     headers: {
       'Content-Type': 'application/json',

@@ -14,24 +14,6 @@
         </div>
         <div class="d-flex node-actions">
           <v-btn
-            icon="mdi-plus"
-            :size="isMobile ? 'x-small' : 'small'"
-            color="success"
-            variant="text"
-            class="me-1"
-            @click="addChild"
-            v-tooltip="'إضافة ابن/ابنة'"
-          />
-          <v-btn
-            icon="mdi-pencil"
-            :size="isMobile ? 'x-small' : 'small'"
-            color="primary"
-            variant="text"
-            class="me-1"
-            @click="editNode"
-            v-tooltip="'تعديل'"
-          />
-          <v-btn
             v-if="node.children?.length"
             icon="mdi-chevron-down"
             :size="isMobile ? 'x-small' : 'small'"
@@ -43,33 +25,41 @@
         </div>
       </v-card-title>
 
-      <v-card-subtitle v-if="node.relation" class="pt-1 pb-1 font-weight-medium">
-        {{ node.relation }}
-      </v-card-subtitle>
+      <v-card-text>
+        <div class="d-flex flex-wrap gap-2">
+          <v-chip
+            v-if="node.relation"
+            size="small"
+            color="primary"
+            variant="outlined"
+            class="me-2"
+          >
+            {{ node.relation }}
+          </v-chip>
+          <v-chip
+            v-if="node.birth_date"
+            size="small"
+            color="success"
+            variant="outlined"
+            class="me-2"
+          >
+            <v-icon size="small" class="me-1">mdi-calendar</v-icon>
+            {{ formatDate(node.birth_date) }}
+          </v-chip>
+          <v-chip
+            v-if="node.death_date"
+            size="small"
+            color="error"
+            variant="outlined"
+            class="me-2"
+          >
+            <v-icon size="small" class="me-1">mdi-calendar-remove</v-icon>
+            {{ formatDate(node.death_date) }}
+          </v-chip>
+        </div>
 
-      <v-divider v-if="node.relation || node.birth_date || node.death_date || node.notes" class="mb-2"></v-divider>
-
-      <v-card-text class="pt-1">
-        <v-row v-if="node.birth_date || node.death_date" class="mb-1">
-          <v-col cols="12" class="py-1">
-            <div v-if="node.birth_date" class="d-flex align-center">
-              <v-icon :size="isMobile ? 'x-small' : 'small'" color="primary" class="me-2">mdi-calendar</v-icon>
-              <span :class="isMobile ? 'text-caption' : 'text-body-1'">
-                {{ isMobile ? 'الميلاد:' : 'تاريخ الميلاد:' }} <strong>{{ formatDate(node.birth_date) }}</strong>
-              </span>
-            </div>
-            <div v-if="node.death_date" class="d-flex align-center mt-1">
-              <v-icon :size="isMobile ? 'x-small' : 'small'" color="grey-darken-1" class="me-2">mdi-calendar-remove</v-icon>
-              <span :class="isMobile ? 'text-caption' : 'text-body-1'">
-                {{ isMobile ? 'الوفاة:' : 'تاريخ الوفاة:' }} <strong>{{ formatDate(node.death_date) }}</strong>
-              </span>
-            </div>
-          </v-col>
-        </v-row>
-
-        <div v-if="node.notes" class="mt-1 mb-2 d-flex align-center">
-          <v-icon :size="isMobile ? 'x-small' : 'small'" color="blue-grey-darken-1" class="me-2">mdi-note-text</v-icon>
-          <span :class="isMobile ? 'text-caption' : 'text-body-1'">{{ node.notes }}</span>
+        <div v-if="node.notes" class="mt-2 text-body-2">
+          {{ node.notes }}
         </div>
 
         <div v-if="expanded && node.children?.length" class="children mt-3 pt-2">
@@ -102,28 +92,11 @@
         </div>
       </v-card-text>
     </v-card>
-
-    <EditNode
-      v-if="showEdit"
-      :show="showEdit"
-      :node="node"
-      @update:show="showEdit = false"
-      @saved="onSaved"
-    />
-
-    <EditNode
-      v-if="showAddChild"
-      :show="showAddChild"
-      :parent-id="node.id"
-      @update:show="showAddChild = false"
-      @saved="onSaved"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import EditNode from './EditNode.vue';
 
 const props = defineProps({
   node: { type: Object, required: true }
@@ -133,8 +106,6 @@ console.log('FamilyTreeNode received node:', props.node);
 
 const emit = defineEmits(['refresh']);
 
-const showEdit = ref(false);
-const showAddChild = ref(false);
 const expanded = ref(true);
 const isMobile = ref(false);
 
@@ -169,21 +140,17 @@ function formatDate(date) {
   }
 }
 
-function editNode() {
-  showEdit.value = true;
-}
-
-function addChild() {
-  showAddChild.value = true;
-}
-
 function toggleExpand() {
   expanded.value = !expanded.value;
 }
 
-function onSaved(data) {
-  console.log('Node saved:', data);
-  emit('refresh');
+// دالة للتحقق من حالة البيانات
+function checkDataState() {
+  console.log('Current node state:', {
+    node: props.node,
+    expanded: expanded.value,
+    isMobile: isMobile.value
+  });
 }
 </script>
 

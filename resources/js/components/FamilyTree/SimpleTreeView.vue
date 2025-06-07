@@ -40,7 +40,7 @@
                     <th>الجنس</th>
                     <th>تاريخ الميلاد</th>
                     <th>الأب</th>
-                    <th>الإجراءات</th>
+                    <th>الأجراءات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,7 +171,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import BalkanOrgChart from './BalkanOrgChart.vue';
 import type { TreeNode } from '../../types/family-tree';
 
@@ -186,6 +186,10 @@ const emit = defineEmits<{
 // Refs
 const activeTab = ref('cards'); // Default active tab
 const search = ref(''); // Search text
+const loading = ref(false);
+const error = ref(null);
+const containerWidth = ref(0);
+const containerHeight = ref(0);
 
 // Filtered nodes based on search
 const filteredNodes = computed(() => {
@@ -226,6 +230,37 @@ const getFatherName = (node: TreeNode): string => {
   const father = props.treeData.find(n => n.id === node.father_id);
   return father ? father.name : '-';
 };
+
+// دالة للتحقق من حالة البيانات
+function checkDataState() {
+  console.log('Current simple tree state:', {
+    treeData: props.treeData,
+    loading: loading.value,
+    error: error.value,
+    containerWidth: containerWidth.value,
+    containerHeight: containerHeight.value
+  });
+}
+
+// تحديث حالة البيانات عند التغيير
+watch(() => props.treeData, (newValue) => {
+  console.log('Tree data changed:', {
+    length: newValue?.length,
+    firstItem: newValue?.[0],
+    lastItem: newValue?.[newValue.length - 1]
+  });
+  checkDataState();
+}, { deep: true });
+
+watch(loading, (newValue) => {
+  console.log('Loading state changed:', newValue);
+  checkDataState();
+});
+
+watch(error, (newValue) => {
+  console.log('Error state changed:', newValue);
+  checkDataState();
+});
 </script>
 
 <style scoped>

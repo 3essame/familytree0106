@@ -7,6 +7,7 @@ use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\FamilyTreeController;
+use App\Http\Controllers\API\MarriageController;
 
 
 /*
@@ -61,4 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // مسارات شجرة العائلة
     Route::apiResource('family-tree', FamilyTreeController::class);
 
+    // مسارات الزواج
+    Route::get('/marriages/{marriage}', [MarriageController::class, 'show']);
+    Route::put('/marriages/{marriage}', [MarriageController::class, 'update']);
 });

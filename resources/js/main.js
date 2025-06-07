@@ -5,7 +5,13 @@ import router from './router';
 import axios from 'axios';
 
 // تعيين URL الأساسي للـ API
-axios.defaults.baseURL = 'http://localhost:8000/api';
+//dr.abdrazaq
+axios.defaults.baseURL = window.location.protocol +
+    "//" +
+    window.location.hostname +
+    ":" +
+    window.location.port +
+    "/api";;
 
 // إعداد التوكن من التخزين المحلي إذا كان موجودًا
 const token = localStorage.getItem('token');

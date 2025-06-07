@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import { OrgChart } from 'd3-org-chart';
+import * as d3OrgChart from 'd3-org-chart';
 import type { TreeNode } from '../../types/family-tree';
 
 const props = defineProps<{
@@ -23,6 +23,9 @@ const emit = defineEmits<{
 // Refs
 const chartContainer = ref<HTMLElement | null>(null);
 const isLoading = ref(true);
+const error = ref<string | null>(null);
+const containerWidth = ref(0);
+const containerHeight = ref(0);
 let chart: any = null;
 
 // تعريف نوع للبيانات المحولة - تم التعليق عليه لأننا نستخدم any[] الآن
@@ -138,7 +141,7 @@ const initChart = () => {
       console.log('Creating new OrgChart instance');
       try {
         // إنشاء مخطط جديد باستخدام الطريقة الموصى بها
-        chart = new OrgChart()
+        chart = new d3OrgChart.OrgChart()
           .container(chartContainer.value)
           .data(data)
           .nodeWidth(150)
@@ -158,31 +161,20 @@ const initChart = () => {
               return `<div class="node-card root-node" style="opacity: 0;"></div>`;
             }
 
-            // طباعة بيانات العقدة للتشخيص
-            console.log('Node data:', d.data);
-
             const gender = d.data.gender || 'unknown';
-            console.log('Node gender:', gender);
-
             const name = d.data.name || 'بدون اسم';
-            const birthDate = d.data.birthDate ? `م: ${formatDate(d.data.birthDate)}` : ''; // م للميلاد
-            const deathDate = d.data.deathDate ? `و: ${formatDate(d.data.deathDate)}` : ''; // و للوفاة
-
-            // إضافة أسلوب مباشر للعقدة لضمان تطبيق الألوان
-            const bgColor = gender === 'male' ? '#bbdefb' : gender === 'female' ? '#f8bbd0' : '#f5f5f5';
-            const borderColor = gender === 'male' ? '#2196f3' : gender === 'female' ? '#f06292' : '#9e9e9e';
+            const birthDate = d.data.birthDate ? `م: ${formatDate(d.data.birthDate)}` : '';
+            const deathDate = d.data.deathDate ? `و: ${formatDate(d.data.deathDate)}` : '';
 
             return `
-              <div class="node-card ${gender === 'male' ? 'male' : gender === 'female' ? 'female' : 'unknown'}"
-                   style="background-color: ${bgColor}; border: 2px solid ${borderColor};">
-                <div class="node-name" style="font-weight: bold; font-size: 16px; color: #333;">${name}</div>
-                ${birthDate ? `<div class="node-birth" style="font-size: 13px; color: #0277bd;">${birthDate}</div>` : ''}
-                ${deathDate ? `<div class="node-death" style="font-size: 13px; color: #c2185b;">${deathDate}</div>` : ''}
+              <div class="node-card ${gender === 'male' ? 'male' : gender === 'female' ? 'female' : 'unknown'}">
+                <div class="node-name">${name}</div>
+                ${birthDate ? `<div class="node-birth">${birthDate}</div>` : ''}
+                ${deathDate ? `<div class="node-death">${deathDate}</div>` : ''}
               </div>
             `;
           })
           .onNodeClick((node: any) => {
-            // تجاهل النقر على الجذر الوهمي
             if (node && node.id && node.id !== 'root' && !node.data.isRoot) {
               try {
                 const nodeId = parseInt(node.id);
@@ -196,59 +188,50 @@ const initChart = () => {
           })
           .render();
 
-        console.log('Chart created and rendered successfully:', chart);
-      } catch (error) {
-        console.error('Error creating or rendering chart:', error);
-        isLoading.value = false;
-        return;
-      }
-
-      // إضافة أزرار التكبير/التصغير
-      if (chartContainer.value) {
-        const zoomButtonsContainer = document.createElement('div');
-        zoomButtonsContainer.className = 'zoom-buttons';
-        zoomButtonsContainer.innerHTML = `
-          <button class="zoom-button zoom-in">+</button>
-          <button class="zoom-button zoom-out">-</button>
-          <button class="zoom-button zoom-reset">إعادة ضبط</button>
-        `;
-        chartContainer.value.appendChild(zoomButtonsContainer);
-
-        // إضافة مستمعي الأحداث للأزرار
-        const zoomInButton = zoomButtonsContainer.querySelector('.zoom-in');
-        const zoomOutButton = zoomButtonsContainer.querySelector('.zoom-out');
-        const zoomResetButton = zoomButtonsContainer.querySelector('.zoom-reset');
-
-        if (zoomInButton) {
-          zoomInButton.addEventListener('click', () => {
-            if (chart) chart.zoomIn();
-          });
-        }
-
-        if (zoomOutButton) {
-          zoomOutButton.addEventListener('click', () => {
-            if (chart) chart.zoomOut();
-          });
-        }
-
-        if (zoomResetButton) {
-          zoomResetButton.addEventListener('click', () => {
-            if (chart) chart.fit();
-          });
-        }
+        console.log('Chart created successfully');
+      } catch (err) {
+        console.error('Error creating chart:', err);
+        error.value = 'حدث خطأ أثناء إنشاء الشجرة';
       }
     }
-  } catch (error) {
-    console.error('Error initializing chart:', error);
+  } catch (err) {
+    console.error('Error in initChart:', err);
+    error.value = 'حدث خطأ أثناء تحميل الشجرة';
   } finally {
     isLoading.value = false;
   }
 };
 
-// مراقبة التغييرات في البيانات
-watch(() => props.treeData, () => {
-  initChart();
+// دالة للتحقق من حالة البيانات
+function checkDataState() {
+  console.log('Current OrgChart state:', {
+    treeData: props.treeData,
+    loading: isLoading.value,
+    error: error.value,
+    containerWidth: containerWidth.value,
+    containerHeight: containerHeight.value
+  });
+}
+
+// تحديث حالة البيانات عند التغيير
+watch(() => props.treeData, (newValue) => {
+  console.log('Tree data changed:', {
+    length: newValue?.length,
+    firstItem: newValue?.[0],
+    lastItem: newValue?.[newValue.length - 1]
+  });
+  checkDataState();
 }, { deep: true });
+
+watch(isLoading, (newValue) => {
+  console.log('Loading state changed:', newValue);
+  checkDataState();
+});
+
+watch(error, (newValue) => {
+  console.log('Error state changed:', newValue);
+  checkDataState();
+});
 
 // تهيئة المخطط عند تحميل المكون
 onMounted(() => {

@@ -10,13 +10,10 @@ class MarriageService
 {
     public function createMarriage(array $data): Marriage
     {
-        return DB::transaction(function () use ($data) {
-            $marriage = Marriage::create([
+        return DB::transaction(function () use ($data) {            $marriage = Marriage::create([
                 'person1_id' => $data['person1_id'],
                 'person2_id' => $data['person2_id'],
                 'marriage_date' => $data['marriage_date'],
-                'marriage_location' => $data['marriage_location'] ?? null,
-                'witnesses' => $data['witnesses'] ?? null,
                 'notes' => $data['notes'] ?? null,
                 'status' => 'active',
             ]);

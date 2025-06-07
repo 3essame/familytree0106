@@ -63,7 +63,6 @@ class FamilyTreeNode extends Model
     {
         return FamilyTreeNode::where('father_id', $this->father_id)
             ->where('mother_id', $this->mother_id)
-            ->where('id', '!=', $this->id)
             ->get();
     }
 

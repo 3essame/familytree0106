@@ -248,22 +248,11 @@ export default {
       roles: []
     });
     
-    const headers = [
-      { title: 'الاسم', key: 'name', align: 'start', sortable: true },
-      { title: 'البريد الإلكتروني', key: 'email', align: 'start', sortable: true },
-      { title: 'الحالة', key: 'status', align: 'center', sortable: true },
-      { title: 'الأدوار', key: 'roles', align: 'center', sortable: false },
-      { title: 'الإجراءات', key: 'actions', align: 'center', sortable: false, width: '120px' }
-    ];
-    
     const passwordRules = computed(() => {
       if (isEditing.value) {
-        return [];
+        return [v => !v || v.length >= 8 || 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل'];
       } else {
-        return [
-          v => !!v || 'كلمة المرور مطلوبة',
-          v => (v && v.length >= 8) || 'كلمة المرور يجب أن تكون 8 أحرف على الأقل'
-        ];
+        return [v => !!v || 'كلمة المرور مطلوبة', v => v.length >= 8 || 'كلمة المرور يجب أن تتكون من 8 أحرف على الأقل'];
       }
     });
     
@@ -285,13 +274,22 @@ export default {
     const error = computed(() => usersStore.error);
     const loading = computed(() => usersStore.loading);
     
-    const { tableHeaders, defaultTableProps } = useRtlTable(headers, {
-      tableProps: {
-        hover: true,
-        'fixed-header': true,
-        'items-per-page': 10
-      }
-    });
+    const { defaultTableProps, updateTablePropsRtl } = useRtlTable();
+
+    defaultTableProps.value = {
+      headers: [
+        { title: 'الاسم', key: 'name' },
+        { title: 'البريد الإلكتروني', key: 'email', class: 'd-none d-md-table-cell' },
+        { title: 'الحالة', key: 'status' },
+        { title: 'الأدوار', key: 'roles', sortable: false, class: 'd-none d-lg-table-cell' },
+        { title: 'الإجراءات', key: 'actions', sortable: false, align: 'end' },
+      ],
+      itemPerPageText: 'العناصر في الصفحة:',
+      noDataText: 'لا توجد بيانات للعرض',
+      noResultsText: 'لا توجد نتائج مطابقة',
+      itemsPerPageOptions: [10, 25, 50, 100],
+      search: search.value,
+    };
     
     onMounted(async () => {
       await usersStore.fetchUsers();
@@ -408,7 +406,6 @@ export default {
     };
     
     return {
-      headers: tableHeaders,
       search,
       dialog,
       deleteDialog,

@@ -1,152 +1,204 @@
 <template>
-  <div class="person-card" :class="{ 'is-male': person.gender === 'male', 'is-female': person.gender === 'female' }">
-    <div class="person-header">
-      <h3 class="person-name">{{ person.name }}</h3>
-      <div class="person-gender">
-        <i :class="person.gender === 'male' ? 'fas fa-male' : 'fas fa-female'"></i>
-      </div>
-    </div>
-    
-    <div class="person-details">
-      <div class="detail-item" v-if="person.birth_date">
-        <i class="fas fa-birthday-cake"></i>
-        <span>{{ formatDate(person.birth_date) }}</span>
-      </div>
-      
-      <div class="detail-item" v-if="person.death_date">
-        <i class="fas fa-cross"></i>
-        <span>{{ formatDate(person.death_date) }}</span>
+  <div 
+    class="person-card" 
+    :class="{
+      'is-male': person.gender === 'male',
+      'is-female': person.gender === 'female',
+      'touch-device': isTouchDevice
+    }"
+  >
+    <div class="card-content">
+      <!-- Header -->
+      <div class="person-header">
+        <div class="avatar" :class="person.gender">
+          <img 
+            :src="person.gender === 'male' ? '/images/male.png' : '/images/female.png'"
+            :alt="person.gender"
+          >
+        </div>
+        <h3 class="person-name" :class="{ 'mobile-text': isMobile }">
+          {{ person.name }}
+        </h3>
       </div>
 
-      <div class="marriage-info" v-if="currentMarriage">
-        <div class="detail-item">
-          <i class="fas fa-ring"></i>
+      <!-- Details -->
+      <div class="person-details">
+        <div v-if="person.birth_date" class="detail-row">
+          <v-icon size="small">mdi-cake-variant</v-icon>
+          <span>{{ formatDate(person.birth_date) }}</span>
+        </div>
+
+        <div v-if="person.death_date" class="detail-row">
+          <v-icon size="small">mdi-cross</v-icon>
+          <span>{{ formatDate(person.death_date) }}</span>
+        </div>
+
+        <div v-if="currentMarriage?.marriage_date" class="detail-row">
+          <v-icon size="small">mdi-ring</v-icon>
           <span>{{ formatDate(currentMarriage.marriage_date) }}</span>
         </div>
       </div>
-    </div>
 
-    <div class="person-actions">
-      <button @click="$emit('edit', person)" class="btn-edit">
-        <i class="fas fa-edit"></i>
-      </button>
-      <button @click="$emit('view-details', person)" class="btn-view">
-        <i class="fas fa-info-circle"></i>
-      </button>
+      <!-- Actions -->
+      <div class="person-actions">
+        <v-btn
+          icon
+          variant="text"
+          :size="isMobile ? 'large' : 'default'"
+          @click="$emit('edit', person)"
+          class="action-btn"
+        >
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn
+          icon
+          variant="text"
+          :size="isMobile ? 'large' : 'default'"
+          @click="$emit('view-details', person)"
+          class="action-btn"
+        >
+          <v-icon>mdi-information</v-icon>
+        </v-btn>
+      </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  props: {
-    person: {
-      type: Object,
-      required: true
-    },
-    currentMarriage: {
-      type: Object,
-      default: null
-    }
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useDisplay } from 'vuetify';
+
+const props = defineProps({
+  person: {
+    type: Object,
+    required: true
   },
-  methods: {
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('ar-SA', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    }
+  currentMarriage: {
+    type: Object,
+    default: null
   }
-}
+});
+
+const display = useDisplay();
+const isMobile = computed(() => display.mdAndDown.value);
+const isTouchDevice = ref(false);
+
+onMounted(() => {
+  isTouchDevice.value = 'ontouchstart' in window;
+});
+
+const formatDate = (date) => {
+  if (!date) return '';
+  return new Date(date).toLocaleDateString('ar-SA');
+};
 </script>
 
 <style scoped>
 .person-card {
   background: white;
   border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 300px;
+  margin: 8px;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
 }
 
-.person-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.person-card.is-male {
-  border-right: 4px solid #4a90e2;
-}
-
-.person-card.is-female {
-  border-right: 4px solid #e24a90;
+.card-content {
+  padding: 16px;
 }
 
 .person-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar.male {
+  background-color: var(--v-primary-base, #1976d2);
+}
+
+.avatar.female {
+  background-color: var(--v-pink-base, #e91e63);
 }
 
 .person-name {
-  font-size: 1.2rem;
-  font-weight: 600;
   margin: 0;
-  color: #2c3e50;
-}
-
-.person-gender {
-  font-size: 1.5rem;
-  color: #666;
+  font-size: 1.1rem;
+  font-weight: 500;
 }
 
 .person-details {
-  margin-bottom: 1rem;
+  margin: 12px 0;
 }
 
-.detail-item {
+.detail-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  color: #666;
-}
-
-.detail-item i {
-  width: 20px;
-  text-align: center;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 0.9rem;
 }
 
 .person-actions {
   display: flex;
-  gap: 0.5rem;
   justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
 }
 
-.btn-edit, .btn-view {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  cursor: pointer;
-  color: #666;
-  transition: color 0.3s ease;
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .person-card {
+    max-width: 100%;
+  }
+
+  .mobile-text {
+    font-size: 1rem;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .action-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
-.btn-edit:hover {
-  color: #4a90e2;
+/* Touch Device Styles */
+.touch-device .action-btn {
+  min-width: 48px;
+  min-height: 48px;
 }
 
-.btn-view:hover {
-  color: #2c3e50;
+.touch-device .detail-row {
+  padding: 8px 0;
 }
 
-.marriage-info {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #eee;
+/* RTL Support */
+[dir="rtl"] .avatar {
+  margin-right: 0;
+  margin-left: 12px;
 }
-</style> 
+
+[dir="rtl"] .person-actions {
+  flex-direction: row-reverse;
+}
+</style>

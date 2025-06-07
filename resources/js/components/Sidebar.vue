@@ -1,215 +1,137 @@
 <template>
   <v-navigation-drawer
-    v-model="drawer"
-    :rail="isCollapsed"
-    permanent
-    location="right"
-    :width="280"
-    :rail-width="56"
+    v-if="!isMobile || modelValue"
+    :model-value="modelValue"
+    @update:model-value="handleDrawerUpdate"
+    :temporary="isMobile"
+    :permanent="!isMobile"
+    :location="isRtl ? 'right' : 'left'"
+    width="280"
     color="primary"
     theme="dark"
-    class="sidebar"
+    :rail="!isMobile && !modelValue"
+    :rail-width="56"
+    :disable-resize-watcher="false"
+    :touchless="false"
+    :scrim="isMobile && modelValue"
+    app
   >
+    <!-- رأس الشريط الجانبي -->
     <v-list-item
-      prepend-avatar="/images/family-tree-logo.svg"
-      :title="authStore.user ? authStore.user.name : 'مستخدم'"
-      :subtitle="'شجرة العائلة'"
+      v-if="authStore.user && (modelValue || !isMobile)"
+      :prepend-avatar="'/images/family-tree-logo.svg'"
+      :title="!isMobile && !modelValue ? '' : authStore.user.name"
+      :subtitle="!isMobile && !modelValue ? '' : 'شجرة العائلة'"
       class="py-3"
-    >
-      <template v-slot:append>
-        <v-btn
-          variant="text"
-          :icon="isCollapsed ? 'mdi-chevron-left' : 'mdi-chevron-right'"
-          @click.stop="toggleSidebar"
-          class="toggle-btn"
-        ></v-btn>
-      </template>
-    </v-list-item>
+      nav
+    />
+    <v-divider v-if="modelValue || !isMobile" />
 
-    <v-divider></v-divider>
-
+    <!-- قائمة التنقل -->
     <v-list density="compact" nav>
-      <!-- عناصر القائمة المتاحة لجميع المستخدمين -->
-      <v-list-item
-        prepend-icon="mdi-view-dashboard"
-        title="الرئيسية"
-        value="dashboard"
+      <v-list-item 
+        prepend-icon="mdi-view-dashboard" 
+        :title="(!isMobile && !modelValue) ? '' : 'الرئيسية'" 
         to="/dashboard"
-      ></v-list-item>
-
-      <!-- عناصر القائمة المرتبطة بالصلاحيات -->
-      <v-list-group
-        v-if="can('view family tree')"
-        value="family-tree-group"
-      >
-        <template v-slot:activator="{ props }">
-          <v-list-item
-            v-bind="props"
-            prepend-icon="mdi-family-tree"
-            title="شجرة العائلة"
-          ></v-list-item>
-        </template>
-
-        <v-list-item
-          prepend-icon="mdi-tree"
-          title="النسخة الحالية"
-          value="family-tree"
-          to="/family-tree"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-tree-outline"
-          title="النسخة الجديدة"
-          value="new-family-tree"
-          to="/new-family-tree"
-        ></v-list-item>
-      </v-list-group>
-
-      <!-- عناصر القائمة المرتبطة بالأدوار -->
-      <v-list-group
-        v-if="hasRole('admin')"
+        :class="{ 'justify-center': !isMobile && !modelValue }"
+      />
+      
+      <v-list-item 
+        v-if="can('view family tree')" 
+        prepend-icon="mdi-family-tree" 
+        :title="(!isMobile && !modelValue) ? '' : 'شجرة العائلة'" 
+        to="/new-family-tree"
+        :class="{ 'justify-center': !isMobile && !modelValue }"
+      />
+      
+      <v-list-group 
+        v-if="hasRole('admin') && (modelValue || isMobile)" 
         value="admin"
       >
-        <template v-slot:activator="{ props }">
-          <v-list-item
-            v-bind="props"
-            prepend-icon="mdi-cog"
-            title="الإدارة"
-          ></v-list-item>
+        <template v-slot:activator="{ props: activatorProps }">
+          <v-list-item 
+            v-bind="activatorProps" 
+            prepend-icon="mdi-shield-account" 
+            title="الإدارة" 
+          />
         </template>
-
         <v-list-item
-          prepend-icon="mdi-account-multiple"
-          title="المستخدمين"
-          value="users"
-          to="/users"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-cog-outline"
-          title="الإعدادات"
-          value="settings"
-          to="/settings"
-        ></v-list-item>
-
-        <v-list-item
-          prepend-icon="mdi-shield-account"
-          title="الأدوار والصلاحيات"
-          value="roles"
-          to="/roles"
-        ></v-list-item>
+          v-for="item in adminMenuItems"
+          :key="item.value"
+          :value="item.value"
+          :title="item.title"
+          :to="item.to"
+          :prepend-icon="item.icon"
+          density="comfortable"
+        />
       </v-list-group>
-    </v-list>
 
-    <template v-slot:append>
-      <div class="pa-2">
-        <v-btn
-          block
-          color="error"
-          prepend-icon="mdi-logout"
-          @click="logout"
-        >
-          تسجيل الخروج
-        </v-btn>
-      </div>
-    </template>
+      <!-- عناصر الإدارة في حالة Rail Mode -->
+      <template v-if="hasRole('admin') && !isMobile && !modelValue">
+        <v-list-item
+          v-for="item in adminMenuItems"
+          :key="item.value"
+          :value="item.value"
+          :title="''"
+          :to="item.to"
+          :prepend-icon="item.icon"
+          class="justify-center"
+        />
+      </template>
+      
+      <v-list-item 
+        prepend-icon="mdi-cog" 
+        :title="(!isMobile && !modelValue) ? '' : 'الإعدادات'" 
+        to="/settings"
+        :class="{ 'justify-center': !isMobile && !modelValue }"
+      />
+      
+      <v-list-item 
+        prepend-icon="mdi-logout" 
+        :title="(!isMobile && !modelValue) ? '' : 'تسجيل الخروج'" 
+        @click="logout"
+        :class="{ 'justify-center': !isMobile && !modelValue }"
+      />
+    </v-list>
   </v-navigation-drawer>
 </template>
 
-<script>
-import { ref, watch } from 'vue';
+<script setup>
 import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
-import { useRtl } from '@/composables/useRtl';
 
-export default {
-  name: 'Sidebar',
-  props: {
-    isCollapsed: {
-      type: Boolean,
-      default: false
-    }
-  },
-  setup(props, { emit }) {
-    const authStore = useAuthStore();
-    const router = useRouter();
-    const drawer = ref(true);
-    const { isRtl } = useRtl();
+// استقبال الخصائص (Props)
+const props = defineProps({
+  modelValue: Boolean,
+  isRtl: Boolean,
+  isMobile: Boolean,
+});
 
-    watch(() => props.isCollapsed, (newValue) => {
-      drawer.value = !newValue;
-    });
+const emit = defineEmits(['update:modelValue']);
 
-    const toggleSidebar = () => {
-      emit('toggle-sidebar');
-    };
+const authStore = useAuthStore();
 
-    const can = (permission) => {
-      return authStore.permissions?.includes(permission) || false;
-    };
+const adminMenuItems = [
+  { title: 'المستخدمين', icon: 'mdi-account-multiple', value: 'users', to: '/users' },
+  { title: 'الأدوار والصلاحيات', icon: 'mdi-shield', value: 'roles', to: '/roles' },
+];
 
-    const hasRole = (role) => {
-      return authStore.roles?.includes(role) || false;
-    };
-
-    const logout = async () => {
-      await authStore.logout();
-      router.push('/login');
-    };
-
-    return {
-      authStore,
-      drawer,
-      can,
-      hasRole,
-      logout,
-      toggleSidebar,
-      isRtl
-    };
-  }
+// دالة التعامل مع تحديث حالة الشريط الجانبي
+const handleDrawerUpdate = (value) => {
+  emit('update:modelValue', value);
 };
+
+const can = (permission) => authStore.can(permission);
+const hasRole = (role) => authStore.hasRole(role);
+const logout = async () => await authStore.logout();
 </script>
 
 <style scoped>
-.sidebar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-  z-index: 100;
+/* أنماط مخصصة للـ Rail Mode */
+.v-list-item.justify-center {
+  justify-content: center;
 }
 
-/* تخصيصات للأزرار والعناصر */
-:deep(.v-list-item__prepend) {
-  margin-right: 0 !important;
-  margin-left: 16px !important;
-}
-
-:deep(.v-list-item__append) {
-  margin-left: 0 !important;
-  margin-right: 16px !important;
-}
-
-:deep(.v-list-item__content) {
-  text-align: right !important;
-}
-
-/* تخصيصات زر التبديل */
-.toggle-btn {
-  position: relative;
-  right: 0;
-  margin-right: 0;
-  z-index: 1;
-}
-
-/* تخصيصات حالة التصغير */
-:deep(.v-navigation-drawer--rail) {
-  .v-list-item__prepend {
-    margin-left: 0 !important;
-  }
-
-  .toggle-btn {
-    margin-right: -8px !important;
-  }
+.v-list-item.justify-center :deep(.v-list-item__prepend) {
+  margin-inline-end: 0;
 }
 </style>

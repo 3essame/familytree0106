@@ -61,16 +61,7 @@ const routes = [
       roles: ['admin']
     }
   },
-  {
-    path: '/family-tree',
-    name: 'family-tree',
-    component: () => import('../views/FamilyTree/TreeView.vue'),
-    meta: {
-      requiresAuth: true,
-      permissions: ['view family tree'],
-      title: 'شجرة العائلة'
-    }
-  },
+
   {
     path: '/new-family-tree',
     name: 'new-family-tree',
@@ -79,6 +70,16 @@ const routes = [
       requiresAuth: true,
       permissions: ['view family tree'],
       title: 'شجرة العائلة (النسخة الجديدة)'
+    }
+  },
+  {
+    path: '/family-tree/add-member',
+    name: 'add-family-member',
+    component: () => import('../views/FamilyTree/AddMember.vue'),
+    meta: {
+      requiresAuth: true,
+      permissions: ['create family member'],
+      title: 'إضافة فرد جديد'
     }
   },
   {

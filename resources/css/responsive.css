@@ -1,0 +1,168 @@
+/* Desktop styles (1200px+) */
+@media screen and (min-width: 1200px) {
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+    }
+
+    .grid-layout {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 2rem;
+    }
+
+    .sidebar {
+        grid-column: span 3;
+    }
+
+    .main-content {
+        grid-column: span 9;
+    }
+
+    .tree-container {
+        min-height: 80vh;
+    }
+}
+
+/* Tablet styles (768px to 1199px) */
+@media screen and (min-width: 768px) and (max-width: 1199px) {
+    .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .grid-layout {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 1.5rem;
+    }
+
+    .sidebar {
+        grid-column: span 3;
+    }
+
+    .main-content {
+        grid-column: span 5;
+    }
+
+    /* Font sizes */
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    body { font-size: 1rem; }
+
+    /* Buttons */
+    .btn {
+        padding: 0.75rem 1.25rem;
+    }
+
+    /* Navigation */
+    .nav-item {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* Mobile styles (up to 767px) */
+@media screen and (max-width: 767px) {
+    .container {
+        width: 100%;
+        padding: 0 1rem;
+    }
+
+    .grid-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Hamburger menu */
+    .navbar-toggle {
+        display: block;
+    }
+
+    .nav-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        height: 100vh;
+        background: white;
+        padding: 2rem;
+        transition: 0.3s;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-menu.active {
+        right: 0;
+    }
+
+    /* Forms */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.875rem 1.5rem;
+        min-height: 44px; /* Touch target size */
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Tables */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        min-width: 500px;
+    }
+
+    /* Tree View */
+    .tree-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 1rem;
+    }
+
+    .tree-node {
+        min-width: 150px;
+    }
+}
+
+/* Performance optimizations */
+@media screen and (max-width: 767px) {
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+/* Custom loading for images */
+.lazy-load {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.lazy-load.loaded {
+    opacity: 1;
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) {
+    .btn:active {
+        transform: scale(0.98);
+    }
+
+    .nav-link {
+        padding: 0.75rem 1rem;
+    }
+}
